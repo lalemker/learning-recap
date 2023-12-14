@@ -1,12 +1,16 @@
-﻿using System;
+﻿namespace WebServices;
+
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using WebServices.Models;
 
-namespace WebServices;
+
 
 public interface IServiceProcessor
 {
-    public Task<HttpResponseMessage?> CallApi(string requestApiUrl);
+    public Task<string?> CallApi(string requestApiUrl);
 }
 
 class ServiceProcessor : IServiceProcessor
@@ -23,7 +27,7 @@ class ServiceProcessor : IServiceProcessor
     //     Console.WriteLine(apiResponse);
     // }
 
-    public async Task<HttpResponseMessage?> CallApi(string requestApiUrl)
+    public async Task<string?> CallApi(string requestApiUrl)
     {
         using (HttpClient client = new HttpClient())
         {
@@ -35,7 +39,7 @@ class ServiceProcessor : IServiceProcessor
                 // Ensure the request was successful (status code 200)
                 response.EnsureSuccessStatusCode();
 
-                return response;
+                return await response.Content.ReadAsStringAsync();
 
             }
             catch (HttpRequestException ex)
@@ -47,11 +51,14 @@ class ServiceProcessor : IServiceProcessor
         }
     }
 
-    private async Task<string?> ParseResponseToString(HttpResponseMessage response)
+    public static Person? Deserialize(string content)
     {
         // Read the response content as a string
-                string responseBody = await response.Content.ReadAsStringAsync();
-
-                return responseBody;
+                
+                var parsed = Person.FromJson(content);
+                //var parsed = JsonConvert.DeserializeObject<Person>(content);
+                return parsed;
     }
+
+    
 }
